@@ -1,8 +1,8 @@
 -- Q1
-SELECT * FROM trading.transactions;
-WHERE member_id = 'c4ca42'
-ORDER BY txn_time DESC
-LIMIT 10;
+select * from trading.transactions;
+where member_id = 'c4ca42'
+order by txn_time desc
+limit 10;
 
 -- Q2
 select count(*) from trading.transactions;
