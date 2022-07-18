@@ -29,37 +29,32 @@ select
 
 -- Question 4 
 with cte_latest_price as (
-  select 
-    ticker
-    , price
-    from trading.prices
-    where ticker = 'ETH'
-    and market_date = '2021-08-29'
-    )
+  select
+    ticker,
+    price
+  from trading.prices
+  where ticker = 'ETH'
+  and market_date = '2021-08-29'
+)
 select
-  m.region
-  , sum(
-      case
-        when t.txn_type = 'BUY' then t.quantity
-        when t.txn_type = 'SELL' then -t.quantity
-        end
-        ) * p.price as etherium_value
-  , avg(
-      case
-          when t.txn_type = 'BUY' then t.quantity
-          when t.txn_type = 'SELL' then -t.quantity
-          end
-          ) * p.price as avg_etherium_value
-          
-  from trading.transactions t
-  
-  join trading.members m
-    on t.member_id = m.member_id
-    
-  join cte_latest_price p
-    on t.ticker = p.ticker
-    
-  where t.ticker = 'ETH'
-  group by m.region
-          , cte_latest_price.price
-  order by avg_etherium_value desc;
+  members.region,
+  sum(
+    case
+      when transactions.txn_type = 'BUY'  then transactions.quantity
+      when transactions.txn_type = 'SELL' then -transactions.quantity
+    end 
+  ) * cte_latest_price.price as ethereum_value,
+  avg(
+    case
+      when transactions.txn_type = 'BUY'  then transactions.quantity
+      when transactions.txn_type = 'SELL' then -transactions.quantity
+    end 
+  ) * cte_latest_price.price AS avg_ethereum_value
+from trading.transactions
+join  cte_latest_price
+  on transactions.ticker = cte_latest_price.ticker
+join  trading.members
+  ON transactions.member_id = members.member_id
+where transactions.ticker = 'ETH'
+group by members.region, cte_latest_price.price
+order by avg_ethereum_value desc;
