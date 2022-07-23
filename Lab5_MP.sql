@@ -49,12 +49,43 @@ select
       when transactions.txn_type = 'BUY'  then transactions.quantity
       when transactions.txn_type = 'SELL' then -transactions.quantity
     end 
-  ) * cte_latest_price.price AS avg_ethereum_value
+  ) * cte_latest_price.price as avg_ethereum_value
 from trading.transactions
 join  cte_latest_price
   on transactions.ticker = cte_latest_price.ticker
 join  trading.members
-  ON transactions.member_id = members.member_id
+  on transactions.member_id = members.member_id
 where transactions.ticker = 'ETH'
 group by members.region, cte_latest_price.price
 order by avg_ethereum_value desc;
+
+  -- Question 5 v2
+  with cte_latest_price as (
+  select ticker
+    , price 
+    from trading.prices
+    where ticker = 'ETH'
+    and market_date = '2021-08-29'
+  )
+  select members.region
+    , sum(
+        case
+          when transactions.txn_type = 'BUY'  then transactions.quantity
+          when transactions.txn_type = 'SELL' then -transactions.quantity
+        end) * cte_latest_price.price as ethereum_value
+    , count(distinct members.first_name) as mentor_count
+    , sum(
+        case
+          when transactions.txn_type = 'BUY'  then transactions.quantity
+          when transactions.txn_type = 'SELL' then -transactions.quantity
+        end) * cte_latest_price.price 
+        /
+        count(distinct members.first_name) as avg_ethereum_price
+    from trading.transactions
+    join  cte_latest_price
+      on transactions.ticker = cte_latest_price.ticker
+    join  trading.members
+      on transactions.member_id = members.member_id
+    where transactions.ticker = 'ETH'
+    group by members.region, cte_latest_price.price
+    order by avg_ethereum_price desc;
